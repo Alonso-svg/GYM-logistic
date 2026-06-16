@@ -6,21 +6,26 @@ import { useRouter } from 'next/navigation'
 export default function AdminPage() {
   const [tab, setTab] = useState('dashboard')
   const [usuario, setUsuario] = useState<any>(null)
-  const [clientes, setClientes] = useState<any[]>([])
-  const [pagos, setPagos] = useState<any[]>([])
-  const [trabajadores, setTrabajadores] = useState<any[]>([])
+  const [cargando, setCargando] = useState(true)
   const router = useRouter()
 
   useEffect(() => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) { router.push('/login'); return }
+      
+      const email = session.user.email || ''
+      if (!email.includes('admin')) {
+        router.push('/cliente')
+        return
+      }
       setUsuario(session.user)
+      setCargando(false)
     }
     checkSession()
   }, [])
 
-  if (!usuario) return (
+  if (cargando) return (
     <div className="min-h-screen bg-gray-950 flex items-center justify-center">
       <p className="text-gray-400 text-sm">Cargando...</p>
     </div>
@@ -28,7 +33,6 @@ export default function AdminPage() {
 
   return (
     <main className="min-h-screen bg-gray-950 text-white flex flex-col">
-      {/* Header */}
       <div className="bg-gray-900 border-b border-gray-800 px-4 py-3 flex justify-between items-center">
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center text-xs font-bold">G</div>
@@ -41,7 +45,6 @@ export default function AdminPage() {
         </button>
       </div>
 
-      {/* Nav */}
       <div className="bg-gray-900 border-b border-gray-800 flex">
         {[['dashboard','Dashboard'],['clientes','Clientes'],['pagos','Pagos'],['trabajadores','Trabajadores']].map(([id,label]) => (
           <button key={id} onClick={() => setTab(id)}
@@ -53,7 +56,6 @@ export default function AdminPage() {
 
       <div className="flex-1 overflow-y-auto p-4 max-w-5xl mx-auto w-full flex flex-col gap-4">
 
-        {/* DASHBOARD */}
         {tab === 'dashboard' && <>
           <div className="grid grid-cols-2 gap-3">
             {[
@@ -106,7 +108,6 @@ export default function AdminPage() {
           </div>
         </>}
 
-        {/* CLIENTES */}
         {tab === 'clientes' && <>
           <div className="flex justify-between items-center">
             <p className="font-medium">Clientes registrados</p>
@@ -138,7 +139,6 @@ export default function AdminPage() {
           </div>
         </>}
 
-        {/* PAGOS */}
         {tab === 'pagos' && <>
           <p className="font-medium">Pagos pendientes de aprobación</p>
           <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
@@ -184,7 +184,6 @@ export default function AdminPage() {
           </div>
         </>}
 
-        {/* TRABAJADORES */}
         {tab === 'trabajadores' && <>
           <div className="flex justify-between items-center">
             <p className="font-medium">Nómina de trabajadores</p>
