@@ -24,10 +24,10 @@ export default function LoginPage() {
     }
 
     if (email.includes('admin')) {
-      router.push('/admin')
-    } else {
-      router.push('/cliente')
-    }
+  window.location.href = '/admin'
+} else {
+  window.location.href = '/cliente'
+}
 
     setLoading(false)
   }
