@@ -1,7 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { useRouter } from 'next/navigation'
 
 const RUTINAS: any = {
   0: { nombre: 'Piernas y glúteos', ejercicios: [
@@ -19,8 +18,8 @@ const RUTINAS: any = {
   ]},
   2: { nombre: 'Cardio y core', ejercicios: [
     { nombre: 'Trote en cinta', detalle: '20 minutos', tip: 'Ritmo constante, zona cardíaca 2–3' },
-    { nombre: 'Plancha lateral', detalle: '3 series × 30 seg c/lado', tip: 'Cadera elevada, sin dejar caer la pelvis' },
-    { nombre: 'Abdominales crunch', detalle: '3 series × 20 reps', tip: 'Exhala al subir, no jales el cuello' },
+    { nombre: 'Plancha lateral', detalle: '3 series × 30 seg c/lado', tip: 'Cadera elevada' },
+    { nombre: 'Abdominales crunch', detalle: '3 series × 20 reps', tip: 'Exhala al subir' },
     { nombre: 'Mountain climbers', detalle: '3 series × 30 seg', tip: 'Caderas bajas, ritmo controlado' },
   ]},
   3: { nombre: 'Pecho y tríceps', ejercicios: [
@@ -32,7 +31,7 @@ const RUTINAS: any = {
   4: { nombre: 'Hombros y funcional', ejercicios: [
     { nombre: 'Press militar', detalle: '4 series × 10 reps', tip: 'Activa core, no arquees la espalda' },
     { nombre: 'Elevaciones laterales', detalle: '3 series × 15 reps', tip: 'Control en la bajada' },
-    { nombre: 'Face pull con polea', detalle: '3 series × 15 reps', tip: 'Tira hacia la nariz, codos hacia afuera' },
+    { nombre: 'Face pull con polea', detalle: '3 series × 15 reps', tip: 'Tira hacia la nariz' },
     { nombre: 'Burpees', detalle: '3 series × 10 reps', tip: 'Explosivo en el salto' },
   ]},
 }
@@ -45,25 +44,26 @@ export default function ClientePage() {
   const [checks, setChecks] = useState<any>({})
   const [metodo, setMetodo] = useState('transferencia')
   const [archivoCargado, setArchivoCargado] = useState(false)
-  const [pagoEnviado, setPagоEnviado] = useState(false)
+  const [pagoEnviado, setPagoEnviado] = useState(false)
   const [usuario, setUsuario] = useState<any>(null)
   const [nota, setNota] = useState('')
-  const router = useRouter()
 
   useEffect(() => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession()
-      if (!session) { router.push('/login'); return }
+      if (!session) { window.location.href = '/login'; return }
+      
+      const email = session.user.email || ''
+      if (email.includes('admin')) {
+        window.location.href = '/admin'
+        return
+      }
       setUsuario(session.user)
     }
     checkSession()
   }, [])
 
-  const toggleCheck = (key: string) => {
-    setChecks((prev: any) => ({ ...prev, [key]: !prev[key] }))
-  }
-
-  const submitPago = () => setPagоEnviado(true)
+  const toggleCheck = (key: string) => setChecks((prev: any) => ({ ...prev, [key]: !prev[key] }))
 
   if (!usuario) return (
     <div className="min-h-screen bg-gray-950 flex items-center justify-center">
@@ -75,7 +75,6 @@ export default function ClientePage() {
 
   return (
     <main className="min-h-screen bg-gray-950 text-white flex flex-col">
-      {/* Header */}
       <div className="bg-gray-900 border-b border-gray-800 px-4 py-3 flex justify-between items-center">
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center text-xs font-bold">G</div>
@@ -83,18 +82,17 @@ export default function ClientePage() {
         </div>
         <div className="flex items-center gap-3">
           <span className="text-gray-400 text-xs">{usuario.email}</span>
-          <button onClick={async () => { await supabase.auth.signOut(); router.push('/login') }}
+          <button onClick={async () => { await supabase.auth.signOut(); window.location.href = '/login' }}
             className="text-xs text-gray-400 border border-gray-700 px-2 py-1 rounded-lg hover:text-white">
             Salir
           </button>
         </div>
       </div>
 
-      {/* Nav */}
       <div className="bg-gray-900 border-b border-gray-800 flex">
-        {[['inicio','Inicio'],['rutina','Mi rutina'],['pagos','Pagos']].map(([id, label]) => (
+        {[['inicio','Inicio'],['rutina','Mi rutina'],['pagos','Pagos']].map(([id,label]) => (
           <button key={id} onClick={() => setTab(id)}
-            className={`px-5 py-3 text-sm flex items-center gap-2 border-b-2 transition-colors ${tab === id ? 'border-blue-500 text-blue-400 font-medium' : 'border-transparent text-gray-400 hover:text-white'}`}>
+            className={`px-5 py-3 text-sm border-b-2 transition-colors ${tab === id ? 'border-blue-500 text-blue-400 font-medium' : 'border-transparent text-gray-400 hover:text-white'}`}>
             {label}
           </button>
         ))}
@@ -102,7 +100,6 @@ export default function ClientePage() {
 
       <div className="flex-1 overflow-y-auto p-4 max-w-2xl mx-auto w-full flex flex-col gap-4">
 
-        {/* INICIO */}
         {tab === 'inicio' && <>
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
             <div className="flex justify-between items-start mb-4">
@@ -135,7 +132,6 @@ export default function ClientePage() {
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
             <div className="flex justify-between items-center mb-3">
               <p className="font-medium text-sm">Hoy — {DIAS[new Date().getDay() === 0 ? 6 : new Date().getDay()-1]}</p>
-              <span className="text-xs bg-blue-900 text-blue-400 px-2 py-0.5 rounded-full">Día {(new Date().getDay() || 7)}</span>
             </div>
             {RUTINAS[0].ejercicios.slice(0,3).map((ex: any, i: number) => (
               <div key={i} className="flex items-center gap-3 py-2 border-b border-gray-800 last:border-0">
@@ -153,7 +149,6 @@ export default function ClientePage() {
           </div>
         </>}
 
-        {/* RUTINA */}
         {tab === 'rutina' && <>
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
             <p className="font-medium text-sm mb-3">Rutina semanal</p>
@@ -201,7 +196,7 @@ export default function ClientePage() {
               ['🌙','Duerme 7–8 horas para recuperación óptima'],
               ['🥗','Consume proteína 30 min después de entrenar'],
               ['❤️','Respeta los días de descanso'],
-            ].map(([icon, texto]) => (
+            ].map(([icon,texto]) => (
               <div key={texto} className="flex gap-3 items-start py-2 border-b border-gray-800 last:border-0">
                 <span className="text-base">{icon}</span>
                 <p className="text-xs text-gray-400 leading-relaxed">{texto}</p>
@@ -210,7 +205,6 @@ export default function ClientePage() {
           </div>
         </>}
 
-        {/* PAGOS */}
         {tab === 'pagos' && <>
           {!pagoEnviado ? <>
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
@@ -255,7 +249,7 @@ export default function ClientePage() {
                   <p className="text-sm text-gray-400">{archivoCargado ? 'comprobante.jpg listo' : 'Toca aquí para subir comprobante'}</p>
                   <p className="text-xs text-gray-500 mt-1">JPG, PNG o PDF · máx 5MB</p>
                 </div>
-                <button onClick={submitPago} disabled={!archivoCargado}
+                <button onClick={() => setPagoEnviado(true)} disabled={!archivoCargado}
                   className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed py-2.5 rounded-lg text-sm font-medium transition-colors">
                   Enviar comprobante
                 </button>
@@ -271,7 +265,7 @@ export default function ClientePage() {
                     placeholder="Ej: Lo pago el martes por la mañana"
                     className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500" />
                 </div>
-                <button onClick={submitPago}
+                <button onClick={() => setPagoEnviado(true)}
                   className="w-full bg-blue-600 hover:bg-blue-700 py-2.5 rounded-lg text-sm font-medium transition-colors">
                   Notificar pago en efectivo
                 </button>
