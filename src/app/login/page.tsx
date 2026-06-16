@@ -1,21 +1,19 @@
-'use client'
+ 'use client'
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { useRouter } from 'next/navigation'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const router = useRouter()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
 
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
 
     if (error) {
       setError('Correo o contraseña incorrectos')
@@ -24,58 +22,10 @@ export default function LoginPage() {
     }
 
     if (email.includes('admin')) {
-  window.location.href = '/admin'
-} else {
-  window.location.href = '/cliente'
-}
-
-    setLoading(false)
-  }
-
-  return (
-    <main className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
-      <div className="w-full max-w-sm bg-gray-900 rounded-xl border border-gray-800 p-8">
-        <div className="text-center mb-8">
-          <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center mx-auto mb-3">
-            <span
-git add . && git commit -m "login detecta admin por correo" && git push
-
-
-
-
-cat > src/app/login/page.tsx << 'EOF'
-'use client'
-import { useState } from 'react'
-import { supabase } from '@/lib/supabase'
-import { useRouter } from 'next/navigation'
-
-export default function LoginPage() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
-  const router = useRouter()
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
-
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-
-    if (error) {
-      setError('Correo o contraseña incorrectos')
-      setLoading(false)
-      return
-    }
-
-    if (email.includes('admin')) {
-      router.push('/admin')
+      window.location.href = '/admin'
     } else {
-      router.push('/cliente')
+      window.location.href = '/cliente'
     }
-
-    setLoading(false)
   }
 
   return (
